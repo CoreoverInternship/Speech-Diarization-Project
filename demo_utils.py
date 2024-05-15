@@ -33,7 +33,7 @@ def speech_to_text():
     recgoniser = sr.Recognizer()
 
     print("got here")
-    with sr.AudioFile("audio_data/demo_updated.wav") as source:
+    with sr.AudioFile("audio_data/RENAME_update.wav") as source:
         audio = recgoniser.record(source)
     try:
         text = recgoniser.recognize_google(audio)
