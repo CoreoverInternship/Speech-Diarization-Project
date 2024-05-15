@@ -8,6 +8,7 @@ from sys import stderr
 import matplotlib.pyplot as plt
 import numpy as np
 
+
 _default_colors = plt.rcParams["axes.prop_cycle"].by_key()["color"]
 _my_colors = np.array([
     [0, 127, 70],
@@ -116,7 +117,9 @@ def plot_projections(embeds, speakers, ax=None, colors=None, markers=None, legen
     return projs
     
 
-def interactive_diarization(similarity_dict, wav, wav_splits, x_crop=5, show_time=True):
+def interactive_diarization(similarity_dict, wav, wav_splits, duration, sampling_rate, x_crop=5, show_time=True):
+    # sampling_rate = sampling_rate
+    # print(sampling_rate)
     fig, ax = plt.subplots()
     lines = [ax.plot([], [], label=name)[0] for name in similarity_dict.keys()]
     text = ax.text(0, 0, "", fontsize=10)
@@ -132,7 +135,9 @@ def interactive_diarization(similarity_dict, wav, wav_splits, x_crop=5, show_tim
         ax.legend(loc="lower right")
         return lines + [text]
     
-    times = [((s.start + s.stop) / 2) / sampling_rate for s in wav_splits]
+    times = [(duration/ len(wav_splits)*s)  for s in range(len(wav_splits))]
+
+    # print(times)
     rate = 1 / (times[1] - times[0])
     crop_range = int(np.round(x_crop * rate))
     ticks = np.arange(0, len(wav_splits), rate)
@@ -178,7 +183,7 @@ def interactive_diarization(similarity_dict, wav, wav_splits, x_crop=5, show_tim
     
     ani = FuncAnimation(fig, update, frames=len(wav_splits), init_func=init, blit=not show_time,
                         repeat=False, interval=1)
-    play_wav(wav, blocking=False)
+    # play_wav(wav, blocking=False)
     plt.show()
 
 

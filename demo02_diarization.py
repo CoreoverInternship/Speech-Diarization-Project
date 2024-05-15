@@ -1,21 +1,23 @@
 from resemblyzer import preprocess_wav, VoiceEncoder
 from demo_utils import *
 from pathlib import Path
-from multiprocessing import Process, Event
+from multiprocessing import Process
 import pygame
 import time
 from pydub import AudioSegment
 import speech_recognition as sr
+import wave
+from resemblyzer import sampling_rate
 
 
 # def main():
 #     playaudio()
 
-def playaudio(start_event):
+def playaudio():
     pygame.mixer.init(frequency = 55125)
     path = Path("audio_data", "demo_big.mp3")
     pygame.mixer.music.load(path)
-    start_event.wait()  
+    # start_event.wait()  
     pygame.mixer.music.play(start=0)
     while pygame.mixer.music.get_busy():  # Check if the music is still playing
         time.sleep(1)  # Wait for the music to finish
@@ -23,12 +25,31 @@ def playaudio(start_event):
 
 
 def code_run():
+    # sampling_rate = 44100
+
+
+
+    # print(sampling_rate)
     # start_event.wait()
 
     ## Get reference audios
     recgoniser = sr.Recognizer()
     mp3_path = Path("audio_data", "demo_big.mp3")
     wav_path = Path("audio_data", "demo_updated.wav")
+
+    with wave.open("audio_data/demo_updated.wav", "r") as wave_file:
+        frames = wave_file.getnframes()
+        print("frames: "+str(frames))
+        frame_rate = wave_file.getframerate()
+        print("frame_rate: "+str(frame_rate))
+        duration = frames / float(frame_rate)
+        print("duration: "+str(duration))
+    
+    
+    
+
+
+        # sampling_rate = frame_rate
     # print("got here")
     # with sr.AudioFile("audio_data/demo_updated.wav") as source:
     #     audio = recgoniser.record(source)
@@ -44,9 +65,11 @@ def code_run():
     # wav_fpath = Path("audio_data", "demo_big.mp3")
     wav = preprocess_wav(wav_path)
 
+    
+
     # Cut some segments from single speakers as reference audio
     # segments = [[0, 5.5], [6.5, 12], [17, 25]]
-    segments = [[2,17],[19,42]]
+    segments = [[0,17],[19,42]]
     # speaker_names = ["Kyle Gass", "Sean Evans", "Jack Black"]
     speaker_names = ["quinn", "sarthak"]
     # speaker_wavs = [wav[int(s[0] * sampling_rate):int(s[1] * sampling_rate)] for s in segments]
@@ -72,30 +95,21 @@ def code_run():
     # print(wav)
     # print(wav_splits)
     ## Run the interactive demo
-    interactive_diarization(similarity_dict, wav, wav_splits)
+    interactive_diarization(similarity_dict, wav, wav_splits, duration, sampling_rate)
  
     
 if __name__ == "__main__":
-    # start_event = Event()
-
+    
     # playaudio()
     code_run()
-   
-    # music_process = multiprocessing.Process(target=playaudio)
-
-    # task_process = multiprocessing.Process(target=code_run)
-
-    # music_process = Process(target=playaudio, args=(start_event,))
-    # task_process = Process(target=code_run, args=(start_event,))
+    # music_process = Process(target=playaudio)
+    # task_process = Process(target=code_run)
 
 
     # task_process.start()
     
     # music_process.start()
-    # # music_process.sleep(1)
-    
-    # time.sleep(2)  # Allow some setup time if necessary before starting both processes
-    # start_event.set()  # 
+   
 
 
     # music_process.join()
