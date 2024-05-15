@@ -7,6 +7,8 @@ from umap import UMAP
 from sys import stderr
 import matplotlib.pyplot as plt
 import numpy as np
+import speech_recognition as sr
+import wave
 
 
 _default_colors = plt.rcParams["axes.prop_cycle"].by_key()["color"]
@@ -27,6 +29,17 @@ _my_colors = np.array([
     [76, 255, 0],
 ], dtype=float) / 255
 
+def speech_to_text():
+    recgoniser = sr.Recognizer()
+
+    print("got here")
+    with sr.AudioFile("audio_data/demo_updated.wav") as source:
+        audio = recgoniser.record(source)
+    try:
+        text = recgoniser.recognize_google(audio)
+        print("text: "+text)
+    except Exception as e:
+        print("Exception: " + str(e))
 
 def interactive_diarization(similarity_dict, wav, wav_splits, duration, sampling_rate, x_crop=5, show_time=True):
     # sampling_rate = sampling_rate
