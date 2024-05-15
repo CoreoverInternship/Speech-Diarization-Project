@@ -10,107 +10,58 @@ import wave
 from resemblyzer import sampling_rate
 
 
-# def main():
-#     playaudio()
+mp3_path = Path("audio_data", "demo_big.mp3")
+wav_path = Path("audio_data", "demo_updated.wav")
 
-def playaudio():
-    pygame.mixer.init(frequency = 55125)
-    path = Path("audio_data", "demo_big.mp3")
-    pygame.mixer.music.load(path)
-    # start_event.wait()  
-    pygame.mixer.music.play(start=0)
-    while pygame.mixer.music.get_busy():  # Check if the music is still playing
-        time.sleep(1)  # Wait for the music to finish
-
-
-
-def code_run():
-    # sampling_rate = 44100
+with wave.open("audio_data/demo_updated.wav", "r") as wave_file:
+    frames = wave_file.getnframes()
+    print("frames: "+str(frames))
+    frame_rate = wave_file.getframerate()
+    print("frame_rate: "+str(frame_rate))
+    duration = frames / float(frame_rate)
+    print("duration: "+str(duration))
 
 
 
-    # print(sampling_rate)
-    # start_event.wait()
-
-    ## Get reference audios
-    recgoniser = sr.Recognizer()
-    mp3_path = Path("audio_data", "demo_big.mp3")
-    wav_path = Path("audio_data", "demo_updated.wav")
-
-    with wave.open("audio_data/demo_updated.wav", "r") as wave_file:
-        frames = wave_file.getnframes()
-        print("frames: "+str(frames))
-        frame_rate = wave_file.getframerate()
-        print("frame_rate: "+str(frame_rate))
-        duration = frames / float(frame_rate)
-        print("duration: "+str(duration))
-    
-    
-    
 
 
-        # sampling_rate = frame_rate
-    # print("got here")
-    # with sr.AudioFile("audio_data/demo_updated.wav") as source:
-    #     audio = recgoniser.record(source)
-    # try:
-    #     text = recgoniser.recognize_google(audio)
-    #     print("text: "+text)
-    # except Exception as e:
-    #     print("Exception: " + str(e))
 
-    # mp3_audio = AudioSegment.from_file(mp3_path, format="mp3")
-    # mp3_audio.export(wav_path, format="wav")
 
-    # wav_fpath = Path("audio_data", "demo_big.mp3")
-    wav = preprocess_wav(wav_path)
+mp3_audio = AudioSegment.from_file(mp3_path, format="mp3")
+mp3_audio.export(wav_path, format="wav")
+
+wav_fpath = Path("audio_data", "demo_big.mp3")
+wav = preprocess_wav(wav_path)
+
+
+
+# Cut some segments from single speakers as reference audio
+# segments = [[0, 5.5], [6.5, 12], [17, 25]]
+segments = [[0,17],[19,42]]
+# speaker_names = ["Kyle Gass", "Sean Evans", "Jack Black"]
+speaker_names = ["quinn", "sarthak"]
+# speaker_wavs = [wav[int(s[0] * sampling_rate):int(s[1] * sampling_rate)] for s in segments]
+speaker_wavs = [wav[int(s[0] * sampling_rate):int(s[1] * sampling_rate)] for s in segments]
+
 
     
-
-    # Cut some segments from single speakers as reference audio
-    # segments = [[0, 5.5], [6.5, 12], [17, 25]]
-    segments = [[0,17],[19,42]]
-    # speaker_names = ["Kyle Gass", "Sean Evans", "Jack Black"]
-    speaker_names = ["quinn", "sarthak"]
-    # speaker_wavs = [wav[int(s[0] * sampling_rate):int(s[1] * sampling_rate)] for s in segments]
-    speaker_wavs = [wav[int(s[0] * sampling_rate):int(s[1] * sampling_rate)] for s in segments]
-
-    
-        
-    encoder = VoiceEncoder("cpu")
-    print("Running the continuous embedding on cpu, this might take a while...")
-    _, cont_embeds, wav_splits = encoder.embed_utterance(wav, return_partials=True, rate=16)
+encoder = VoiceEncoder("cpu")
+print("Running the continuous embedding on cpu, this might take a while...")
+_, cont_embeds, wav_splits = encoder.embed_utterance(wav, return_partials=True, rate=16)
 
 
 
-    speaker_embeds = [encoder.embed_utterance(speaker_wav) for speaker_wav in speaker_wavs]
-    similarity_dict = {name: cont_embeds @ speaker_embed for name, speaker_embed in 
-                    zip(speaker_names, speaker_embeds)}
-
-    
-
-    # print(speaker_names)
-    # print(speaker_embeds)
-    # print(similarity_dict)
-    # print(wav)
-    # print(wav_splits)
-    ## Run the interactive demo
-    interactive_diarization(similarity_dict, wav, wav_splits, duration, sampling_rate)
- 
-    
-if __name__ == "__main__":
-    
-    # playaudio()
-    code_run()
-    # music_process = Process(target=playaudio)
-    # task_process = Process(target=code_run)
+speaker_embeds = [encoder.embed_utterance(speaker_wav) for speaker_wav in speaker_wavs]
+similarity_dict = {name: cont_embeds @ speaker_embed for name, speaker_embed in 
+                zip(speaker_names, speaker_embeds)}
 
 
-    # task_process.start()
-    
-    # music_process.start()
-   
 
-
-    # music_process.join()
-    # task_process.join()
+# print(speaker_names)
+# print(speaker_embeds)
+# print(similarity_dict)
+# print(wav)
+# print(wav_splits)
+## Run the interactive demo
+interactive_diarization(similarity_dict, wav, wav_splits, duration, sampling_rate)
+speech_to_text()

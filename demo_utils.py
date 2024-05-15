@@ -109,7 +109,18 @@ def interactive_diarization(similarity_dict, wav, wav_splits, duration, sampling
                         repeat=False, interval=1)
     # play_wav(wav, blocking=False)
     plt.show()
-
+    
+    
+    def text_to_speech():
+        recgoniser = sr.Recognizer()
+        print("got here")
+        with sr.AudioFile("audio_data/demo_updated.wav") as source:
+            audio = recgoniser.record(source)
+        try:
+            text = recgoniser.recognize_google(audio)
+            print("text: "+text)
+        except Exception as e:
+            print("Exception: " + str(e))
 
 
 
