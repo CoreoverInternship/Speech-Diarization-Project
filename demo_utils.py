@@ -116,7 +116,7 @@ def plot_projections(embeds, speakers, ax=None, colors=None, markers=None, legen
     return projs
     
 
-def interactive_diarization(similarity_dict, wav, wav_splits, x_crop=5, show_time=False):
+def interactive_diarization(similarity_dict, wav, wav_splits, x_crop=5, show_time=True):
     fig, ax = plt.subplots()
     lines = [ax.plot([], [], label=name)[0] for name in similarity_dict.keys()]
     text = ax.text(0, 0, "", fontsize=10)
@@ -145,7 +145,7 @@ def interactive_diarization(similarity_dict, wav, wav_splits, x_crop=5, show_tim
         if show_time:
             crop_ticks = ticks[(crop[0] <= ticks) * (ticks <= crop[1])]
             ax.set_xticks(crop_ticks)
-            ax.set_xticklabels(np.round(crop_ticks / rate).astype(np.int))
+            ax.set_xticklabels(np.round(crop_ticks / rate).astype(int))
 
         # Plot the prediction
         similarities = [s[i] for s in similarity_dict.values()]

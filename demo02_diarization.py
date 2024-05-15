@@ -29,17 +29,17 @@ def code_run():
     recgoniser = sr.Recognizer()
     mp3_path = Path("audio_data", "demo_big.mp3")
     wav_path = Path("audio_data", "demo_updated.wav")
-    print("got here")
-    with sr.AudioFile("audio_data/demo_updated.wav") as source:
-        audio = recgoniser.record(source)
-    try:
-        text = recgoniser.recognize_google(audio)
-        print("text: "+text)
-    except Exception as e:
-        print("Exception: " + str(e))
+    # print("got here")
+    # with sr.AudioFile("audio_data/demo_updated.wav") as source:
+    #     audio = recgoniser.record(source)
+    # try:
+    #     text = recgoniser.recognize_google(audio)
+    #     print("text: "+text)
+    # except Exception as e:
+    #     print("Exception: " + str(e))
 
-    mp3_audio = AudioSegment.from_file(mp3_path, format="mp3")
-    mp3_audio.export(wav_path, format="wav")
+    # mp3_audio = AudioSegment.from_file(mp3_path, format="mp3")
+    # mp3_audio.export(wav_path, format="wav")
 
     # wav_fpath = Path("audio_data", "demo_big.mp3")
     wav = preprocess_wav(wav_path)
@@ -63,8 +63,11 @@ def code_run():
     speaker_embeds = [encoder.embed_utterance(speaker_wav) for speaker_wav in speaker_wavs]
     similarity_dict = {name: cont_embeds @ speaker_embed for name, speaker_embed in 
                     zip(speaker_names, speaker_embeds)}
-    print(speaker_names)
-    print(speaker_embeds)
+
+    
+
+    # print(speaker_names)
+    # print(speaker_embeds)
     # print(similarity_dict)
     # print(wav)
     # print(wav_splits)
