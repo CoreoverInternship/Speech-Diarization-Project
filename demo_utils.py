@@ -9,6 +9,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import speech_recognition as sr
 import wave
+from pydub import AudioSegment
+from pydub.utils import make_chunks
+
+
 
 
 _default_colors = plt.rcParams["axes.prop_cycle"].by_key()["color"]
@@ -29,17 +33,17 @@ _my_colors = np.array([
     [76, 255, 0],
 ], dtype=float) / 255
 
-def speech_to_text():
-    recgoniser = sr.Recognizer()
+# def speech_to_text():
+#     recgoniser = sr.Recognizer()
 
-    print("got here")
-    with sr.AudioFile("audio_data/RENAME_update.wav") as source:
-        audio = recgoniser.record(source)
-    try:
-        text = recgoniser.recognize_google(audio)
-        print("text: "+text)
-    except Exception as e:
-        print("Exception: " + str(e))
+    
+#     with sr.AudioFile("audio_data/RENAME_update.wav") as source:
+#         audio = recgoniser.record(source)
+#     try:
+#         text = recgoniser.recognize_google(audio)
+#         print("text: "+text)
+#     except Exception as e:
+#         print("Exception: " + str(e))
 
 def interactive_diarization(similarity_dict, wav, wav_splits, duration, sampling_rate, x_crop=5, show_time=True):
     # sampling_rate = sampling_rate
@@ -110,17 +114,82 @@ def interactive_diarization(similarity_dict, wav, wav_splits, duration, sampling
     # play_wav(wav, blocking=False)
     plt.show()
     
-    
-    def text_to_speech():
-        recgoniser = sr.Recognizer()
-        print("got here")
-        with sr.AudioFile("audio_data/demo_updated.wav") as source:
-            audio = recgoniser.record(source)
-        try:
-            text = recgoniser.recognize_google(audio)
-            print("text: "+text)
-        except Exception as e:
-            print("Exception: " + str(e))
+def getSegments(similarity_dict, duration):
+        if(not similarity_dict):
+            print("No data in similarity dictionary.")
+            return
 
+        keys = list(similarity_dict.keys())
+        times = [(duration / len(similarity_dict[keys[0]]) * s) for s in range(len(similarity_dict[keys[0]]))]
+        tolerance = 0.02
+        
+        segment_times = {key: [] for key in keys}
+        dont_repeat = {key: False for key in keys}
+        lastKey =""
+        for s in range(len(similarity_dict[keys[0]])):
+            for i, key1 in enumerate(keys):
+                if dont_repeat[key1]:
+                    continue
+
+                is_greater = True
+                for j, key2 in enumerate(keys):
+                    if i != j and similarity_dict[key1][s] <= similarity_dict[key2][s] + tolerance:
+                        is_greater = False
+                        break
+
+                if is_greater:
+                    segment_times[key1].append(times[s])
+                    if(lastKey != ""):
+                        segment_times[lastKey].append(times[s])
+                    lastKey = key1
+                    dont_repeat[key1] = True
+                    for other_key in keys:
+                        if other_key != key1:
+                            dont_repeat[other_key] = False
+
+        for key in keys:
+            if(len(segment_times[key]) %2 != 0):
+                segment_times[key].append(duration)
+           
+        return segment_times
+
+def segmentsToText(segment_times,file):
+    
+
+    segmentList =[]
+    keys = list(segment_times.keys())
+
+    for key in keys:
+        
+        for i  in range(0,len(segment_times[key]),2):
+            
+            temp = speech_to_text(segment_times[key][i]-.5,segment_times[key][i+1]+.5,file)
+            if(isinstance(temp, str) ):
+                text = temp
+            else:
+                text = "Not Understood"
+            start = segment_times[key][i]
+            stop = segment_times[key][i+1]
+            # print(key+": ",text," start: ",start,"stop: ",stop)
+            segmentList.append([key + ": "+text,start,stop])
+    return segmentList
+
+
+def speech_to_text(start,stop,file):
+    recgoniser = sr.Recognizer()
+    duration = stop - start
+    
+    with sr.AudioFile(file) as source:
+        audio = recgoniser.record(source,duration,start)
+    try:
+        text = recgoniser.recognize_google(audio)
+        return text
+    except Exception as e:
+        print("Exception: " + str(e))
+    
+
+
+    
+        
 
 
